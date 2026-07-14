@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import type { Role } from "@prisma/client";
 import { env } from "./env";
 
@@ -20,7 +20,11 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 }
 
 export function signToken(payload: JwtPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+  // O cast é seguro aqui: JWT_EXPIRES_IN é validado no schema Zod (env.ts)
+  // e sempre recebe um valor no formato aceito pela lib (ex: "7d", "1h"),
+  // mas o TypeScript não consegue inferir isso a partir de um `string` genérico.
+  const options: SignOptions = { expiresIn: env.JWT_EXPIRES_IN as SignOptions["expiresIn"] };
+  return jwt.sign(payload, env.JWT_SECRET, options);
 }
 
 // Retorna null em vez de lançar exceção — quem chama decide o que fazer
