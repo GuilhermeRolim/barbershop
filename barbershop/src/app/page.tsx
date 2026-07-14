@@ -7,8 +7,8 @@ const ROLE_HOME: Record<string, string> = {
   CLIENT: "/agendar",
 };
 
-export default function HomePage() {
-  const user = getCurrentUser();
+export default async function HomePage() {
+  const user = await getCurrentUser();
 
   return (
     <main style={{ maxWidth: 640, margin: "80px auto", padding: "0 24px", textAlign: "center" }}>
