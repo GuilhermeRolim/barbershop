@@ -4,7 +4,10 @@ import { updateAppointmentStatusSchema } from "@/lib/validations/appointment";
 
 const MIN_CANCEL_NOTICE_HOURS = 2;
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+type RouteParams = { params: Promise<{ id: string }> };
+
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const userId = req.headers.get("x-user-id");
   const role = req.headers.get("x-user-role");
   if (!userId || !role) {
@@ -12,7 +15,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 
   const appointment = await prisma.appointment.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       service: true,
       barber: { select: { id: true, name: true } },
@@ -34,7 +37,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   return NextResponse.json({ appointment });
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: RouteParams) {
+  const { id } = await params;
   const userId = req.headers.get("x-user-id");
   const role = req.headers.get("x-user-role");
   if (!userId || !role) {
@@ -53,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Status inválido" }, { status: 400 });
   }
 
-  const appointment = await prisma.appointment.findUnique({ where: { id: params.id } });
+  const appointment = await prisma.appointment.findUnique({ where: { id } });
   if (!appointment) {
     return NextResponse.json({ error: "Agendamento não encontrado" }, { status: 404 });
   }
@@ -66,10 +70,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
-  // Regras de negócio por role:
-  // - CLIENT só pode cancelar o próprio agendamento, respeitando antecedência mínima.
-  // - BARBER pode confirmar, completar ou marcar no-show dos seus próprios agendamentos.
-  // - OWNER pode qualquer transição de status.
   if (role === "CLIENT") {
     if (parsed.data.status !== "CANCELLED") {
       return NextResponse.json(
@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const updated = await prisma.appointment.update({
-    where: { id: params.id },
+    where: { id },
     data: { status: parsed.data.status },
     include: {
       service: true,
