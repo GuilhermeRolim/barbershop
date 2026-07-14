@@ -8,8 +8,9 @@ import { verifyToken, type JwtPayload } from "./auth";
  * protegida; isso é útil para páginas que exibem conteúdo condicional
  * sem bloquear o acesso, ex: home pública com botão de login/logout).
  */
-export function getCurrentUser(): JwtPayload | null {
-  const token = cookies().get("token")?.value;
+export async function getCurrentUser(): Promise<JwtPayload | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
   if (!token) return null;
   return verifyToken(token);
 }
