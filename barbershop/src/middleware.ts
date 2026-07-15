@@ -10,7 +10,7 @@ const ROUTE_RULES: { prefix: string; roles: string[] }[] = [
   { prefix: "/agendar", roles: ["OWNER", "BARBER", "CLIENT"] },
   { prefix: "/api/dashboard", roles: ["OWNER"] },
   { prefix: "/api/appointments", roles: ["OWNER", "BARBER", "CLIENT"] },
-  { prefix: "/api/availability", roles: ["OWNER", "BARBER"] },
+  { prefix: "/api/availability", roles: ["OWNER", "BARBER", "CLIENT"] },
   { prefix: "/api/users", roles: ["OWNER"] },
 ];
 

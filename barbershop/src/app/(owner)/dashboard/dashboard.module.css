@@ -5,6 +5,13 @@
   margin-bottom: 40px;
 }
 
+.monthNav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
 .section {
   margin-bottom: 40px;
 }
