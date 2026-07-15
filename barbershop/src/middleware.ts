@@ -16,7 +16,9 @@ const ROUTE_RULES: { prefix: string; roles: string[] }[] = [
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const rule = ROUTE_RULES.find((r) => pathname.startsWith(r.prefix));
+  const rule = ROUTE_RULES.find(
+    (r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/")
+  );
 
   if (!rule) return NextResponse.next();
 
