@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/jwt";
 
+// Mapa de prefixo de rota -> roles permitidas.
+// Rotas /api/* não listadas aqui passam sem checagem de role no middleware
+// (mas ainda podem exigir autenticação dentro do próprio handler).
 const ROUTE_RULES: { prefix: string; roles: string[] }[] = [
   { prefix: "/dashboard", roles: ["OWNER"] },
   { prefix: "/agenda", roles: ["OWNER", "BARBER"] },
@@ -36,6 +39,8 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/nao-autorizado", req.url));
   }
 
+  // Repassa a identidade para os handlers via header, evitando
+  // decodificar o JWT de novo em cada route.ts.
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-user-id", payload.sub);
   requestHeaders.set("x-user-role", payload.role);

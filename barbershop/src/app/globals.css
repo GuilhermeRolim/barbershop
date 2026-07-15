@@ -1,26 +1,107 @@
+/* =========================================================================
+ * Design tokens — paleta extraída do ambiente físico da barbearia
+ * (poltronas em couro preto + ferragem dourada, paredes grafite,
+ * iluminação em anel dourada, piso em mármore claro, latão nas navalhas).
+ * Qualquer ajuste de tema deve acontecer AQUI, nunca via style inline.
+ * ========================================================================= */
 :root {
-  --color-primary: #1a1a1a;
-  --color-accent: #c9a227;
-  --color-bg: #f7f6f3;
-  --color-text: #1a1a1a;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* --- Superfícies (do mais escuro/fundo para o mais claro/elevado) --- */
+  --bg-base: #161412;       /* fundo da página — parede grafite quase-preta */
+  --bg-elevated: #211f1c;   /* cards, poltronas, painéis */
+  --bg-elevated-2: #2b2823; /* inputs, hover de superfície, linhas de tabela */
+  --border: #3c362c;        /* hairlines, divisores */
+  --border-strong: #4f4636;
+
+  /* --- Marca / dourado (latão das tesouras, ferragem das poltronas) --- */
+  --gold-50: #f6ecc9;
+  --gold-300: #d9bb5e;
+  --gold-500: #c6a04a;  /* accent principal */
+  --gold-600: #a9853a;
+  --gold-700: #8a6b2c;
+
+  /* --- Texto --- */
+  --text-primary: #f4efe4;   /* marfim/mármore quente */
+  --text-secondary: #cfc6b4;
+  --text-muted: #9a917f;
+  --text-on-gold: #1a1508;   /* texto sobre fundo dourado precisa ser escuro */
+
+  /* --- Semântica (tons quentes, coerentes com a paleta, não "sinal de trânsito") --- */
+  --success: #7a9d63;
+  --success-bg: rgba(122, 157, 99, 0.12);
+  --danger: #c06a5d;
+  --danger-bg: rgba(192, 106, 93, 0.12);
+  --warning: #cf9d4a;
+  --warning-bg: rgba(207, 157, 74, 0.12);
+
+  /* --- Tipografia (setadas via next/font em layout.tsx) --- */
+  --font-display: var(--font-playfair), Georgia, "Times New Roman", serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* --- Escala de espaçamento / raio / sombra --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.45);
+  --shadow-gold-glow: 0 0 0 1px rgba(198, 160, 74, 0.35);
+
+  --header-height: 72px;
+  --max-content-width: 960px;
+
+  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  background: var(--color-bg);
-  color: var(--color-text);
+  background: var(--bg-base);
+  /* leve textura radial para evitar um preto chapado, ecoando a
+     iluminação pontual (anéis dourados) vista nas fotos do salão */
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(198, 160, 74, 0.07), transparent 45%),
+    radial-gradient(circle at 85% 100%, rgba(198, 160, 74, 0.05), transparent 45%);
+  background-attachment: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  margin: 0 0 8px;
+  color: var(--text-primary);
+}
+
+a {
+  color: inherit;
 }
 
 button {
   cursor: pointer;
+  font-family: inherit;
 }
 
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.55;
+}
+
+/* Foco visível consistente em todo o app — acessibilidade (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+}
+
+table {
+  border-color: var(--border);
 }

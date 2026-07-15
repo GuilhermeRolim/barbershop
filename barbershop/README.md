@@ -1,124 +1,56 @@
-# Barbearia — Sistema de Agendamento
+# Barbearia — versão com novo frontend + correções aplicadas
 
-Sistema completo com 3 níveis de acesso (Dono, Barbeiro, Cliente), agendamento
-com prevenção de conflito de horário, dashboard financeiro e lembretes por e-mail.
+Este pacote é o frontend novo (com componentes visuais, CSS modules,
+AppShell, SiteHeader etc.) já com todas as correções de compatibilidade
+com Next.js 15 e Vercel aplicadas:
 
-## Stack
+## O que foi corrigido em relação ao pacote original enviado
 
-- **Next.js 15** (App Router) + TypeScript
-- **PostgreSQL** + **Prisma ORM**
-- **JWT** próprio (cookie httpOnly) para autenticação
-- **Zod** para validação de entrada
-- **Vitest** + **Testcontainers** para testes
+1. **`src/lib/jwt.ts` (novo arquivo)** — usa a lib `jose` em vez de
+   `jsonwebtoken`. Isso é obrigatório porque o `middleware.ts` roda no
+   Edge Runtime da Vercel, que não suporta APIs Node.js puras. Sem essa
+   troca, o login parece funcionar mas a sessão nunca é reconhecida nas
+   páginas protegidas (loop de redirecionamento para /login).
 
-## ⚠️ Sobre este pacote
+2. **`src/lib/auth.ts`** — simplificado para cuidar só de hash de senha
+   (bcrypt), delegando JWT para `jwt.ts`.
 
-Este código foi gerado e teve sua **sintaxe verificada automaticamente**
-(0 erros em 25 arquivos `.ts`/`.tsx`, checagem via `ts.transpileModule`),
-o schema Prisma teve sua estrutura validada manualmente (chaves balanceadas,
-relations consistentes), e o JSON de configuração foi parseado com sucesso.
+3. **`src/middleware.ts`** — importa de `@/lib/jwt`, função `verifyToken`
+   agora é assíncrona.
 
-**O que NÃO foi possível testar** no ambiente onde este pacote foi gerado
-(sandbox sem acesso à internet, logo sem `npm install`/`prisma generate`
-reais): build do Next.js, geração do Prisma Client, execução da suíte de
-testes contra um banco real, e o app rodando de fato no navegador.
+4. **`src/lib/current-user.ts`** — `cookies()` do Next.js 15 é
+   assíncrono; função `getCurrentUser` agora é `async`.
 
-**Por isso, siga os passos abaixo na sua máquina antes de considerar o
-projeto validado.** Se algo falhar no seu ambiente, me mande o erro exato
-que eu corrijo.
+5. **`src/app/page.tsx`, `src/app/(barber)/layout.tsx`,
+   `src/app/(client)/layout.tsx`, `src/app/(owner)/layout.tsx`** —
+   todos tornados `async` para usar `await getCurrentUser()`.
 
-## Setup local
+6. **`src/app/api/appointments/[id]/route.ts`** — `params` agora é
+   `Promise<{ id: string }>` (mudança do Next.js 15 para rotas dinâmicas).
 
-### 1. Pré-requisitos
-- Node.js 20+
-- Docker (para o Postgres local e para os testes de integração)
+7. **`src/app/login/page.tsx`** — conteúdo que usa `useSearchParams()`
+   envolvido em `<Suspense>`, exigido pelo Next.js 15 para pré-renderização
+   estática. Visual preservado (SiteHeader, Container, TextField, Button).
 
-### 2. Instalar dependências
-```bash
-npm install
+8. **`src/app/api/auth/login/route.ts` e `register/route.ts`** —
+   `await signToken(...)` (a função virou assíncrona).
+
+9. **`package.json`** — `jsonwebtoken` trocado por `jose`; `prisma` e
+   `@prisma/client` fixados em `5.20.0` (sem `^`) tanto em `dependencies`
+   quanto com `postinstall: prisma generate`, evitando que a Vercel baixe
+   uma versão major nova incompatível durante o build.
+
+## Deploy
+
+Igual ao processo que você já vem fazendo: suba este conteúdo pro mesmo
+repositório GitHub (substituindo os arquivos existentes), a Vercel vai
+disparar o deploy automático. O banco de dados (Neon) não precisa de
+nenhuma mudança — o schema é idêntico ao que já está em produção.
+
+**Build Command na Vercel deve continuar:**
+```
+npx prisma generate && npx prisma db push && next build
 ```
 
-### 3. Subir o banco de dados
-```bash
-docker compose up -d
-```
-
-### 4. Configurar variáveis de ambiente
-```bash
-cp .env.example .env
-# Gere um JWT_SECRET forte, por exemplo:
-openssl rand -base64 48
-# Cole o valor gerado em JWT_SECRET no .env
-```
-
-### 5. Rodar as migrations e gerar o Prisma Client
-```bash
-npm run db:generate
-npm run db:migrate
-```
-
-### 6. (Opcional) Popular com dados de teste
-```bash
-npm run db:seed
-```
-Isso cria:
-- Dono: `dono@barbearia.com` / `senha123`
-- Barbeiros: `joao@barbearia.com`, `pedro@barbearia.com` / `senha123`
-- Cliente: `cliente@teste.com` / `senha123`
-
-### 7. Rodar em desenvolvimento
-```bash
-npm run dev
-```
-Acesse `http://localhost:3000`.
-
-### 8. Checar tipos e lint
-```bash
-npm run typecheck
-npm run lint
-```
-
-### 9. Rodar os testes
-```bash
-# Testes unitários (mockados, rápidos)
-npm run test -- appointment.service
-
-# Teste de integração de concorrência (precisa de Docker rodando —
-# sobe um Postgres efêmero automaticamente via Testcontainers)
-npm run test -- appointment.concurrency
-```
-
-## Promovendo um usuário a Barbeiro ou Dono
-
-O cadastro público (`/cadastro`) sempre cria `CLIENT`. Para promover alguém,
-use o Prisma Studio (`npm run db:studio`) e altere o campo `role` diretamente,
-ou crie um endpoint administrativo protegido (não incluso neste MVP —
-ver seção 7 da explicação técnica original sobre próximos passos).
-
-## Estrutura de pastas
-
-```
-src/
-├── app/
-│   ├── api/              # Route handlers (backend)
-│   ├── (owner)/dashboard # Tela do dono
-│   ├── (barber)/agenda   # Tela do barbeiro
-│   ├── (client)/agendar  # Tela do cliente
-│   ├── login/
-│   └── cadastro/
-├── lib/                  # auth, db, env, validações
-├── services/              # regras de negócio (appointment.service.ts)
-├── jobs/                 # cron de lembretes
-└── middleware.ts         # RBAC por rota
-tests/
-├── appointment.service.test.ts              # unitário (mock)
-└── appointment.concurrency.integration.test.ts  # integração (Testcontainers)
-```
-
-## Próximos passos sugeridos (fora do escopo deste MVP)
-
-- Endpoint administrativo para o dono promover usuários a `BARBER`
-- CRUD de serviços e disponibilidade pelo dono (hoje só via seed/Prisma Studio)
-- Refresh token (sessão atual expira em 7 dias sem renovação automática)
-- Rate limiting com Redis para produção multi-instância
-- Campo `remindedAt` já existe no schema para idempotência do cron de lembrete
+**Framework Preset deve continuar:** Next.js
+**Output Directory:** `.next` (sem override, ou com override apontando pra `.next`)

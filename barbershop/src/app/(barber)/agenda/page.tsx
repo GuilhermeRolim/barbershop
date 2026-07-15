@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import useSWR from "swr";
+import { Button, Card, Container, PageHeader, StatusBadge } from "@/components/ui";
+import styles from "./agenda.module.css";
 
 interface Appointment {
   id: string;
@@ -55,60 +57,63 @@ export default function AgendaBarbeiroPage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 24px" }}>
-      <h1>Minha agenda</h1>
+    <Container>
+      <PageHeader title="Minha agenda" />
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        <button
-          onClick={() => setRange("today")}
-          style={{ padding: "8px 16px", background: range === "today" ? "#1a1a1a" : "#fff", color: range === "today" ? "#fff" : "#1a1a1a", border: "1px solid #1a1a1a", borderRadius: 6 }}
-        >
+      <div className={styles.rangeToggle} role="tablist" aria-label="Período">
+        <Button variant="ghost" aria-pressed={range === "today"} onClick={() => setRange("today")}>
           Hoje
-        </button>
-        <button
-          onClick={() => setRange("week")}
-          style={{ padding: "8px 16px", background: range === "week" ? "#1a1a1a" : "#fff", color: range === "week" ? "#fff" : "#1a1a1a", border: "1px solid #1a1a1a", borderRadius: 6 }}
-        >
+        </Button>
+        <Button variant="ghost" aria-pressed={range === "week"} onClick={() => setRange("week")}>
           Próximos 7 dias
-        </button>
+        </Button>
       </div>
 
-      {data?.appointments.length === 0 && <p>Nenhum agendamento neste período.</p>}
+      {data?.appointments.length === 0 && <p className={styles.muted}>Nenhum agendamento neste período.</p>}
 
-      <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+      <ul className={styles.list}>
         {data?.appointments.map((a) => (
-          <li key={a.id} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <strong>
-                {new Date(a.startsAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-              </strong>
-              <span>{a.status}</span>
-            </div>
-            <p style={{ margin: "6px 0" }}>
-              {a.service.name} ({a.service.durationMin}min) — R$ {a.service.price}
-            </p>
-            <p style={{ margin: "6px 0" }}>
-              Cliente: {a.client.name} {a.client.phone ? `— ${a.client.phone}` : ""}
-            </p>
-
-            {(a.status === "SCHEDULED" || a.status === "CONFIRMED") && (
-              <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                {a.status === "SCHEDULED" && (
-                  <button onClick={() => updateStatus(a.id, "CONFIRMED")} style={{ padding: "6px 12px" }}>
-                    Confirmar
-                  </button>
-                )}
-                <button onClick={() => updateStatus(a.id, "COMPLETED")} style={{ padding: "6px 12px" }}>
-                  Concluir
-                </button>
-                <button onClick={() => updateStatus(a.id, "NO_SHOW")} style={{ padding: "6px 12px" }}>
-                  Cliente faltou
-                </button>
+          <li key={a.id}>
+            <Card compact>
+              <div className={styles.cardTop}>
+                <strong>
+                  {new Date(a.startsAt).toLocaleString("pt-BR", {
+                    timeZone: "America/Sao_Paulo",
+                    weekday: "short",
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </strong>
+                <StatusBadge status={a.status} />
               </div>
-            )}
+              <p className={styles.line}>
+                {a.service.name} ({a.service.durationMin}min) — R$ {a.service.price}
+              </p>
+              <p className={styles.line}>
+                Cliente: {a.client.name} {a.client.phone ? `— ${a.client.phone}` : ""}
+              </p>
+
+              {(a.status === "SCHEDULED" || a.status === "CONFIRMED") && (
+                <div className={styles.actions}>
+                  {a.status === "SCHEDULED" && (
+                    <Button size="sm" variant="secondary" onClick={() => updateStatus(a.id, "CONFIRMED")}>
+                      Confirmar
+                    </Button>
+                  )}
+                  <Button size="sm" variant="primary" onClick={() => updateStatus(a.id, "COMPLETED")}>
+                    Concluir
+                  </Button>
+                  <Button size="sm" variant="danger" onClick={() => updateStatus(a.id, "NO_SHOW")}>
+                    Cliente faltou
+                  </Button>
+                </div>
+              )}
+            </Card>
           </li>
         ))}
       </ul>
-    </main>
+    </Container>
   );
 }

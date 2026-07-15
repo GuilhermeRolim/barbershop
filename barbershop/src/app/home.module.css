@@ -1,0 +1,60 @@
+.hero {
+  text-align: center;
+  padding-top: 120px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--gold-300);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.title {
+  font-size: 42px;
+  margin-bottom: 16px;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.ctaRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-block;
+  padding: 13px 28px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.ctaPrimary {
+  background: var(--gold-500);
+  color: var(--text-on-gold);
+}
+
+.ctaPrimary:hover {
+  background: var(--gold-300);
+}
+
+.ctaSecondary {
+  border: 1px solid var(--border-strong);
+  color: var(--text-primary);
+}
+
+.ctaSecondary:hover {
+  border-color: var(--gold-500);
+  color: var(--gold-300);
+}

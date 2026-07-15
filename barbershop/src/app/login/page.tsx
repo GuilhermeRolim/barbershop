@@ -2,6 +2,15 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Button, Container, TextField } from "@/components/ui";
+import styles from "./login.module.css";
+
+const ROLE_HOME: Record<string, string> = {
+  OWNER: "/dashboard",
+  BARBER: "/agenda",
+  CLIENT: "/agendar",
+};
 
 function LoginForm() {
   const router = useRouter();
@@ -31,12 +40,7 @@ function LoginForm() {
       }
 
       const redirect = searchParams.get("redirect");
-      const roleHome: Record<string, string> = {
-        OWNER: "/dashboard",
-        BARBER: "/agenda",
-        CLIENT: "/agendar",
-      };
-      router.push(redirect ?? roleHome[data.user.role] ?? "/");
+      router.push(redirect ?? ROLE_HOME[data.user.role] ?? "/");
       router.refresh();
     } catch {
       setError("Erro de conexão. Tente novamente.");
@@ -46,38 +50,47 @@ function LoginForm() {
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "80px auto", padding: "0 24px" }}>
-      <h1>Entrar</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input
+    <Container width="sm">
+      <h1 className={styles.title}>Entrar</h1>
+      <form onSubmit={handleSubmit} className={styles.form} noValidate>
+        <TextField
+          label="E-mail"
           type="email"
-          placeholder="E-mail"
+          autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ padding: 10 }}
         />
-        <input
+        <TextField
+          label="Senha"
           type="password"
-          placeholder="Senha"
+          autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ padding: 10 }}
         />
-        {error && <p style={{ color: "crimson", margin: 0 }}>{error}</p>}
-        <button type="submit" disabled={loading} style={{ padding: 12, background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 6 }}>
-          {loading ? "Entrando..." : "Entrar"}
-        </button>
+
+        {error && (
+          <p className={styles.formError} role="alert">
+            {error}
+          </p>
+        )}
+
+        <Button type="submit" loading={loading} loadingText="Entrando...">
+          Entrar
+        </Button>
       </form>
-    </main>
+    </Container>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main style={{ maxWidth: 360, margin: "80px auto", padding: "0 24px" }}>Carregando...</main>}>
-      <LoginForm />
-    </Suspense>
+    <>
+      <SiteHeader />
+      <Suspense fallback={<Container width="sm">Carregando...</Container>}>
+        <LoginForm />
+      </Suspense>
+    </>
   );
 }

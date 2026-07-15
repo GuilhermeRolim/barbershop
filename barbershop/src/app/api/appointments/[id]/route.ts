@@ -70,6 +70,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
   }
 
+  // Regras de negócio por role:
+  // - CLIENT só pode cancelar o próprio agendamento, respeitando antecedência mínima.
+  // - BARBER pode confirmar, completar ou marcar no-show dos seus próprios agendamentos.
+  // - OWNER pode qualquer transição de status.
   if (role === "CLIENT") {
     if (parsed.data.status !== "CANCELLED") {
       return NextResponse.json(

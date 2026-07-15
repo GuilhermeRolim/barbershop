@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import { Button, Card, Container, PageHeader, SelectField, StatusBadge, TextField } from "@/components/ui";
+import styles from "./agendar.module.css";
 
 interface Barber {
   id: string;
@@ -53,9 +55,7 @@ export default function AgendarPage() {
       return;
     }
     setLoadingSlots(true);
-    fetch(
-      `/api/availability?barberId=${selectedBarberId}&serviceId=${selectedServiceId}&date=${selectedDate}`
-    )
+    fetch(`/api/availability?barberId=${selectedBarberId}&serviceId=${selectedServiceId}&date=${selectedDate}`)
       .then((r) => r.json())
       .then((data) => setSlots(data.slots ?? []))
       .catch(() => setSlots([]))
@@ -108,108 +108,98 @@ export default function AgendarPage() {
   }
 
   return (
-    <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 24px" }}>
-      <h1>Agendar horário</h1>
+    <Container>
+      <PageHeader title="Agendar horário" subtitle="Escolha o serviço, o profissional e o melhor horário para você." />
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 40 }}>
-        <label>
-          Serviço
-          <select
-            value={selectedServiceId}
-            onChange={(e) => {
-              setSelectedServiceId(e.target.value);
-              setSelectedBarberId("");
-            }}
-            style={{ width: "100%", padding: 10, marginTop: 4 }}
-          >
-            <option value="">Selecione...</option>
-            {servicesData?.services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name} — {s.durationMin}min — R$ {s.price}
-              </option>
-            ))}
-          </select>
-        </label>
+      <Card className={styles.bookingCard}>
+        <SelectField
+          label="Serviço"
+          value={selectedServiceId}
+          onChange={(e) => {
+            setSelectedServiceId(e.target.value);
+            setSelectedBarberId("");
+          }}
+        >
+          <option value="">Selecione...</option>
+          {servicesData?.services.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name} — {s.durationMin}min — R$ {s.price}
+            </option>
+          ))}
+        </SelectField>
 
         {selectedService && (
-          <label>
-            Barbeiro
-            <select
-              value={selectedBarberId}
-              onChange={(e) => setSelectedBarberId(e.target.value)}
-              style={{ width: "100%", padding: 10, marginTop: 4 }}
-            >
-              <option value="">Selecione...</option>
-              {selectedService.barbers.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectField label="Barbeiro" value={selectedBarberId} onChange={(e) => setSelectedBarberId(e.target.value)}>
+            <option value="">Selecione...</option>
+            {selectedService.barbers.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
+          </SelectField>
         )}
 
         {selectedBarberId && (
-          <label>
-            Data
-            <input
-              type="date"
-              value={selectedDate}
-              min={todayISODate()}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              style={{ width: "100%", padding: 10, marginTop: 4 }}
-            />
-          </label>
+          <TextField
+            label="Data"
+            type="date"
+            value={selectedDate}
+            min={todayISODate()}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
         )}
 
         {selectedBarberId && (
           <div>
-            <p style={{ marginBottom: 8 }}>Horários disponíveis</p>
-            {loadingSlots && <p>Carregando...</p>}
-            {!loadingSlots && slots.length === 0 && <p>Nenhum horário livre neste dia.</p>}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            <p className={styles.slotsLabel}>Horários disponíveis</p>
+            {loadingSlots && <p className={styles.muted}>Carregando...</p>}
+            {!loadingSlots && slots.length === 0 && <p className={styles.muted}>Nenhum horário livre neste dia.</p>}
+            <div className={styles.slotsGrid}>
               {slots.map((slot) => (
-                <button
-                  key={slot}
-                  disabled={booking}
-                  onClick={() => handleBook(slot)}
-                  style={{ padding: "8px 14px", border: "1px solid #1a1a1a", borderRadius: 6, background: "#fff" }}
-                >
-                  {new Date(slot).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Sao_Paulo" })}
-                </button>
+                <Button key={slot} variant="secondary" size="sm" disabled={booking} onClick={() => handleBook(slot)}>
+                  {new Date(slot).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    timeZone: "America/Sao_Paulo",
+                  })}
+                </Button>
               ))}
             </div>
           </div>
         )}
 
         {feedback && (
-          <p style={{ color: feedback.type === "error" ? "crimson" : "green" }}>{feedback.text}</p>
+          <p className={feedback.type === "error" ? styles.feedbackError : styles.feedbackSuccess} role="status">
+            {feedback.text}
+          </p>
         )}
-      </section>
+      </Card>
 
-      <section>
-        <h2>Meus agendamentos</h2>
-        {appointmentsData?.appointments.length === 0 && <p>Nenhum agendamento ainda.</p>}
-        <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Meus agendamentos</h2>
+        {appointmentsData?.appointments.length === 0 && <p className={styles.muted}>Nenhum agendamento ainda.</p>}
+        <ul className={styles.list}>
           {appointmentsData?.appointments.map((a) => (
-            <li
-              key={a.id}
-              style={{ border: "1px solid #ddd", borderRadius: 6, padding: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}
-            >
-              <div>
-                <strong>{a.service.name}</strong> com {a.barber.name}
-                <br />
-                {new Date(a.startsAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })} — {a.status}
-              </div>
-              {(a.status === "SCHEDULED" || a.status === "CONFIRMED") && (
-                <button onClick={() => handleCancel(a.id)} style={{ padding: "6px 12px" }}>
-                  Cancelar
-                </button>
-              )}
+            <li key={a.id}>
+              <Card compact className={styles.appointmentCard}>
+                <div>
+                  <strong>{a.service.name}</strong> com {a.barber.name}
+                  <br />
+                  <span className={styles.muted}>
+                    {new Date(a.startsAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })}
+                  </span>{" "}
+                  <StatusBadge status={a.status} />
+                </div>
+                {(a.status === "SCHEDULED" || a.status === "CONFIRMED") && (
+                  <Button variant="danger" size="sm" onClick={() => handleCancel(a.id)}>
+                    Cancelar
+                  </Button>
+                )}
+              </Card>
             </li>
           ))}
         </ul>
       </section>
-    </main>
+    </Container>
   );
 }

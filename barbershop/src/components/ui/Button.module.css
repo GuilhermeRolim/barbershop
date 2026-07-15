@@ -1,0 +1,79 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-family: var(--font-body);
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
+  white-space: nowrap;
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* --- Tamanhos --- */
+.sm {
+  padding: 6px 14px;
+  font-size: 13px;
+}
+
+.md {
+  padding: 11px 22px;
+  font-size: 15px;
+}
+
+/* --- Variantes --- */
+.primary {
+  background: var(--gold-500);
+  color: var(--text-on-gold);
+  border-color: var(--gold-500);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--gold-300);
+  border-color: var(--gold-300);
+}
+
+.secondary {
+  background: transparent;
+  color: var(--gold-300);
+  border-color: var(--gold-600);
+}
+
+.secondary:hover:not(:disabled) {
+  background: rgba(198, 160, 74, 0.1);
+  border-color: var(--gold-300);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.ghost:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+/* Estado "ativo" para toggles do tipo ghost (ex.: filtro selecionado) —
+   aplicado via aria-pressed no consumidor do componente. */
+.ghost[aria-pressed="true"] {
+  background: var(--gold-500);
+  color: var(--text-on-gold);
+  border-color: var(--gold-500);
+}
+
+.danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+}

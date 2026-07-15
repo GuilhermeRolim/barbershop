@@ -2,6 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Button, Container, TextField } from "@/components/ui";
+import styles from "../login/login.module.css"; // mesmo layout de formulário de auth
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -38,44 +41,52 @@ export default function CadastroPage() {
   }
 
   return (
-    <main style={{ maxWidth: 360, margin: "80px auto", padding: "0 24px" }}>
-      <h1>Criar conta</h1>
-      <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <input
-          placeholder="Nome completo"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-          style={{ padding: 10 }}
-        />
-        <input
-          type="email"
-          placeholder="E-mail"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          required
-          style={{ padding: 10 }}
-        />
-        <input
-          placeholder="Telefone (opcional)"
-          value={form.phone}
-          onChange={(e) => setForm({ ...form, phone: e.target.value })}
-          style={{ padding: 10 }}
-        />
-        <input
-          type="password"
-          placeholder="Senha (mín. 8 caracteres)"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          required
-          minLength={8}
-          style={{ padding: 10 }}
-        />
-        {error && <p style={{ color: "crimson", margin: 0 }}>{error}</p>}
-        <button type="submit" disabled={loading} style={{ padding: 12, background: "#1a1a1a", color: "#fff", border: "none", borderRadius: 6 }}>
-          {loading ? "Criando..." : "Criar conta"}
-        </button>
-      </form>
-    </main>
+    <>
+      <SiteHeader />
+      <Container width="sm">
+        <h1 className={styles.title}>Criar conta</h1>
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
+          <TextField
+            label="Nome completo"
+            value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            required
+          />
+          <TextField
+            label="E-mail"
+            type="email"
+            autoComplete="email"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            required
+          />
+          <TextField
+            label="Telefone (opcional)"
+            type="tel"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+          <TextField
+            label="Senha (mín. 8 caracteres)"
+            type="password"
+            autoComplete="new-password"
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            required
+            minLength={8}
+          />
+
+          {error && (
+            <p className={styles.formError} role="alert">
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" loading={loading} loadingText="Criando...">
+            Criar conta
+          </Button>
+        </form>
+      </Container>
+    </>
   );
 }

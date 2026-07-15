@@ -1,6 +1,13 @@
 import { cookies } from "next/headers";
 import { verifyToken, type JwtPayload } from "./jwt";
 
+/**
+ * Lê e valida o JWT do cookie em Server Components / Server Actions.
+ * Retorna null se não houver sessão válida — quem chama decide se
+ * redireciona (o middleware já cobre a maioria dos casos de rota
+ * protegida; isso é útil para páginas que exibem conteúdo condicional
+ * sem bloquear o acesso, ex: home pública com botão de login/logout).
+ */
 export async function getCurrentUser(): Promise<JwtPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
