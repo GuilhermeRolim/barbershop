@@ -14,7 +14,10 @@ const ROLE_LABEL: Record<AppRole, string> = {
 };
 
 const NAV_BY_ROLE: Record<AppRole, { href: string; label: string }[]> = {
-  OWNER: [{ href: "/dashboard", label: "Dashboard" }],
+  OWNER: [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/usuarios", label: "Usuários" },
+  ],
   BARBER: [{ href: "/agenda", label: "Minha agenda" }],
   CLIENT: [{ href: "/agendar", label: "Agendar" }],
 };

@@ -8,6 +8,10 @@ const envSchema = z.object({
   SMTP_PORT: z.string().optional(),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
+  // Protege /api/cron/reminders contra chamadas externas não autorizadas.
+  // Sem essa variável configurada, a rota de cron fica sempre bloqueada
+  // (fail-safe) em vez de aberta por padrão.
+  CRON_SECRET: z.string().optional(),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
 

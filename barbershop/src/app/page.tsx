@@ -1,15 +1,10 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
+import { ROLE_HOME } from "@/lib/role-home";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Container } from "@/components/ui";
 import styles from "./home.module.css";
-
-const ROLE_HOME: Record<string, string> = {
-  OWNER: "/dashboard",
-  BARBER: "/agenda",
-  CLIENT: "/agendar",
-};
 
 // Ícone ilustrativo por nome de serviço — puramente decorativo, não faz
 // parte do schema. Serviço sem correspondência cai no ícone genérico.

@@ -6,6 +6,7 @@ import { verifyToken } from "@/lib/jwt";
 // (mas ainda podem exigir autenticação dentro do próprio handler).
 const ROUTE_RULES: { prefix: string; roles: string[] }[] = [
   { prefix: "/dashboard", roles: ["OWNER"] },
+  { prefix: "/usuarios", roles: ["OWNER"] },
   { prefix: "/agenda", roles: ["OWNER", "BARBER"] },
   { prefix: "/agendar", roles: ["OWNER", "BARBER", "CLIENT"] },
   { prefix: "/api/dashboard", roles: ["OWNER"] },
@@ -54,6 +55,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/usuarios/:path*",
     "/agenda/:path*",
     "/agendar/:path*",
     "/api/appointments/:path*",

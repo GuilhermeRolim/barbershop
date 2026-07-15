@@ -2,6 +2,15 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { CreateAppointmentInput } from "@/lib/validations/appointment";
 
+// O Brasil não tem mais horário de verão desde 2019, então o offset de
+// Brasília (America/Sao_Paulo) é fixo em UTC-3 o ano inteiro — não
+// precisa de biblioteca de timezone para lidar com isso. Os horários
+// salvos em Availability.startTime/endTime ("09:00", "18:00") são
+// horário LOCAL da barbearia, não UTC, e essa constante converte entre
+// os dois nos dois pontos onde isso é necessário: cálculo de slots
+// livres e validação de novo agendamento.
+const SHOP_UTC_OFFSET_HOURS = 3;
+
 export class AppointmentConflictError extends Error {
   constructor(message = "Horário indisponível para este barbeiro") {
     super(message);
@@ -61,8 +70,14 @@ export async function createAppointment(clientId: string, input: CreateAppointme
 
   const endsAt = new Date(startsAt.getTime() + service.durationMin * 60_000);
 
-  const weekday = startsAt.getUTCDay();
-  const hhmm = startsAt.toISOString().slice(11, 16); // "HH:mm"
+  // Converte o horário do agendamento (armazenado em UTC) para horário
+  // local da barbearia antes de comparar com Availability.startTime/endTime,
+  // que são cadastrados em horário local (ex: "09:00" = 9h de Brasília).
+  // O dia da semana também é calculado sobre o horário local — importante
+  // porque perto da meia-noite UTC/local o dia pode ser diferente.
+  const localHours = new Date(startsAt.getTime() - SHOP_UTC_OFFSET_HOURS * 3_600_000);
+  const weekday = localHours.getUTCDay();
+  const hhmm = localHours.toISOString().slice(11, 16); // "HH:mm" em horário local
 
   const availability = await prisma.availability.findFirst({
     where: { barberId: input.barberId, weekday },
@@ -162,11 +177,17 @@ export async function getAvailableSlots(barberId: string, serviceId: string, dat
   const [startH, startM] = availability.startTime.split(":").map(Number);
   const [endH, endM] = availability.endTime.split(":").map(Number);
 
+  // startTime/endTime são horário LOCAL da barbearia (ex: "09:00" = 9h em
+  // Brasília). Somamos o offset para converter para UTC antes de gerar
+  // os slots, já que todo o resto do sistema (banco, comparações) trabalha
+  // em UTC. Sem essa conversão, "09:00" seria interpretado como 9h UTC
+  // (= 6h da manhã em Brasília), 3 horas adiantado do horário real de
+  // funcionamento.
   const slots: string[] = [];
   const cursor = new Date(date);
-  cursor.setUTCHours(startH ?? 0, startM ?? 0, 0, 0);
+  cursor.setUTCHours((startH ?? 0) + SHOP_UTC_OFFSET_HOURS, startM ?? 0, 0, 0);
   const limit = new Date(date);
-  limit.setUTCHours(endH ?? 0, endM ?? 0, 0, 0);
+  limit.setUTCHours((endH ?? 0) + SHOP_UTC_OFFSET_HOURS, endM ?? 0, 0, 0);
 
   const STEP_MIN = 15; // granularidade de slots ofertados ao cliente
 
