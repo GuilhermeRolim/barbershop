@@ -29,9 +29,9 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const data: { error?: string; user?: { role: keyof typeof ROLE_HOME } } = await res.json();
 
-      if (!res.ok) {
+      if (!res.ok || !data.user) {
         setError(data.error ?? "Erro ao entrar");
         return;
       }
