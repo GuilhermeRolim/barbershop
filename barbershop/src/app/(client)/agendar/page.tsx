@@ -44,6 +44,7 @@ export default function AgendarPage() {
   const [selectedDate, setSelectedDate] = useState(todayISODate());
   const [slots, setSlots] = useState<string[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [booking, setBooking] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "error" | "success"; text: string } | null>(null);
 
@@ -54,6 +55,7 @@ export default function AgendarPage() {
       setSlots([]);
       return;
     }
+    setSelectedSlot(null);
     setLoadingSlots(true);
     fetch(`/api/availability?barberId=${selectedBarberId}&serviceId=${selectedServiceId}&date=${selectedDate}`)
       .then((r) => r.json())
@@ -79,11 +81,13 @@ export default function AgendarPage() {
         // levemente desatualizada entre o fetch e o clique.
         setFeedback({ type: "error", text: data.error ?? "Erro ao agendar" });
         setSlots((prev) => prev.filter((s) => s !== startsAt));
+        setSelectedSlot(null);
         return;
       }
 
       setFeedback({ type: "success", text: "Agendamento confirmado!" });
       setSlots((prev) => prev.filter((s) => s !== startsAt));
+      setSelectedSlot(null);
       refetchAppointments();
     } catch {
       setFeedback({ type: "error", text: "Erro de conexão. Tente novamente." });
@@ -156,7 +160,13 @@ export default function AgendarPage() {
             {!loadingSlots && slots.length === 0 && <p className={styles.muted}>Nenhum horário livre neste dia.</p>}
             <div className={styles.slotsGrid}>
               {slots.map((slot) => (
-                <Button key={slot} variant="secondary" size="sm" disabled={booking} onClick={() => handleBook(slot)}>
+                <Button
+                  key={slot}
+                  variant={selectedSlot === slot ? "primary" : "secondary"}
+                  size="sm"
+                  disabled={booking}
+                  onClick={() => setSelectedSlot(slot)}
+                >
                   {new Date(slot).toLocaleTimeString("pt-BR", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -165,6 +175,36 @@ export default function AgendarPage() {
                 </Button>
               ))}
             </div>
+
+            {selectedSlot && (
+              <div className={styles.confirmBar}>
+                <span className={styles.confirmText}>
+                  Confirmar horário às{" "}
+                  <strong>
+                    {new Date(selectedSlot).toLocaleTimeString("pt-BR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: "America/Sao_Paulo",
+                    })}
+                  </strong>
+                  ?
+                </span>
+                <div className={styles.confirmActions}>
+                  <Button variant="ghost" size="sm" disabled={booking} onClick={() => setSelectedSlot(null)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    loading={booking}
+                    loadingText="Confirmando..."
+                    onClick={() => handleBook(selectedSlot)}
+                  >
+                    Confirmar agendamento
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

@@ -23,6 +23,21 @@
   transition: border-color 0.15s ease;
 }
 
+.inputWrap {
+  position: relative;
+}
+
+.inputWithAdornment {
+  padding-right: 44px;
+}
+
+.endAdornment {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .input::placeholder {
   color: var(--text-muted);
 }

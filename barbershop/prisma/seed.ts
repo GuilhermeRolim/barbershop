@@ -96,9 +96,106 @@ async function main() {
     },
   });
 
+  const sobrancelha = await prisma.service.upsert({
+    where: { id: "svc-sobrancelha" },
+    update: {},
+    create: {
+      id: "svc-sobrancelha",
+      name: "Sobrancelha",
+      description: "Design e alinhamento de sobrancelha na navalha ou pinça",
+      durationMin: 15,
+      price: 20.0,
+    },
+  });
+
+  const pezinho = await prisma.service.upsert({
+    where: { id: "svc-pezinho" },
+    update: {},
+    create: {
+      id: "svc-pezinho",
+      name: "Pézinho / Acabamento",
+      description: "Acabamento de contorno para manter o corte em dia",
+      durationMin: 15,
+      price: 15.0,
+    },
+  });
+
+  const hidratacao = await prisma.service.upsert({
+    where: { id: "svc-hidratacao" },
+    update: {},
+    create: {
+      id: "svc-hidratacao",
+      name: "Hidratação Capilar",
+      description: "Tratamento hidratante para cabelo e couro cabeludo",
+      durationMin: 30,
+      price: 35.0,
+    },
+  });
+
+  const coloracao = await prisma.service.upsert({
+    where: { id: "svc-coloracao" },
+    update: {},
+    create: {
+      id: "svc-coloracao",
+      name: "Coloração / Pigmentação",
+      description: "Aplicação de coloração ou pigmento para disfarçar fios brancos",
+      durationMin: 45,
+      price: 50.0,
+    },
+  });
+
+  const relaxamento = await prisma.service.upsert({
+    where: { id: "svc-relaxamento" },
+    update: {},
+    create: {
+      id: "svc-relaxamento",
+      name: "Relaxamento",
+      description: "Relaxamento capilar para alinhar a textura do cabelo",
+      durationMin: 40,
+      price: 45.0,
+    },
+  });
+
+  const desenho = await prisma.service.upsert({
+    where: { id: "svc-desenho" },
+    update: {},
+    create: {
+      id: "svc-desenho",
+      name: "Desenho na Barba",
+      description: "Desenho e acabamento artístico feito na navalha",
+      durationMin: 20,
+      price: 25.0,
+    },
+  });
+
+  const platinado = await prisma.service.upsert({
+    where: { id: "svc-platinado" },
+    update: {},
+    create: {
+      id: "svc-platinado",
+      name: "Platinado",
+      description: "Descoloração completa do cabelo",
+      durationMin: 90,
+      price: 120.0,
+    },
+  });
+
+  const allServices = [
+    corte,
+    barba,
+    combo,
+    sobrancelha,
+    pezinho,
+    hidratacao,
+    coloracao,
+    relaxamento,
+    desenho,
+    platinado,
+  ];
+
   // Vincula os dois barbeiros a todos os serviços
   for (const barber of [barber1, barber2]) {
-    for (const service of [corte, barba, combo]) {
+    for (const service of allServices) {
       await prisma.barberService.upsert({
         where: { barberId_serviceId: { barberId: barber.id, serviceId: service.id } },
         update: {},

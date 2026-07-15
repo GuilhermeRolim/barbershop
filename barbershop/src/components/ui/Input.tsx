@@ -34,23 +34,35 @@ function FieldWrapper({ label, error, children }: FieldWrapperProps) {
 export interface TextFieldProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string;
+  /** Elemento posicionado à direita, dentro do campo (ex.: botão de mostrar/ocultar senha). */
+  endAdornment?: ReactNode;
 }
 
 export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function TextField(
-  { label, error, className, ...rest },
+  { label, error, className, endAdornment, ...rest },
   ref
 ) {
   return (
     <FieldWrapper label={label} error={error}>
       {(id, describedBy) => (
-        <input
-          id={id}
-          ref={ref}
-          aria-invalid={Boolean(error)}
-          aria-describedby={describedBy}
-          className={[styles.input, error && styles.inputError, className].filter(Boolean).join(" ")}
-          {...rest}
-        />
+        <div className={styles.inputWrap}>
+          <input
+            id={id}
+            ref={ref}
+            aria-invalid={Boolean(error)}
+            aria-describedby={describedBy}
+            className={[
+              styles.input,
+              endAdornment && styles.inputWithAdornment,
+              error && styles.inputError,
+              className,
+            ]
+              .filter(Boolean)
+              .join(" ")}
+            {...rest}
+          />
+          {endAdornment && <div className={styles.endAdornment}>{endAdornment}</div>}
+        </div>
       )}
     </FieldWrapper>
   );

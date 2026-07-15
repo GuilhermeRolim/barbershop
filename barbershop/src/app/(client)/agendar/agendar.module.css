@@ -18,6 +18,33 @@
   gap: 8px;
 }
 
+.confirmBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(198, 160, 74, 0.08);
+  border: 1px solid var(--gold-600);
+  border-radius: var(--radius-sm);
+}
+
+.confirmText {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.confirmText strong {
+  color: var(--gold-300);
+}
+
+.confirmActions {
+  display: flex;
+  gap: 8px;
+}
+
 .muted {
   color: var(--text-muted);
   margin: 0;

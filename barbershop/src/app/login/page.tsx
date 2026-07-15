@@ -2,8 +2,9 @@
 
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { Button, Container, TextField } from "@/components/ui";
+import { Button, Card, Container, TextField } from "@/components/ui";
 import styles from "./login.module.css";
 
 const ROLE_HOME: Record<string, string> = {
@@ -17,6 +18,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -50,36 +52,56 @@ function LoginForm() {
   }
 
   return (
-    <Container width="sm">
-      <h1 className={styles.title}>Entrar</h1>
-      <form onSubmit={handleSubmit} className={styles.form} noValidate>
-        <TextField
-          label="E-mail"
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <TextField
-          label="Senha"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+    <Container width="sm" className={styles.wrap}>
+      <Card className={styles.authCard}>
+        <p className={styles.eyebrow}>De volta</p>
+        <h1 className={styles.title}>Entrar</h1>
+        <p className={styles.subtitle}>Acesse sua conta pra ver ou marcar um horário.</p>
 
-        {error && (
-          <p className={styles.formError} role="alert">
-            {error}
-          </p>
-        )}
+        <form onSubmit={handleSubmit} className={styles.form} noValidate>
+          <TextField
+            label="E-mail"
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <TextField
+            label="Senha"
+            type={showPassword ? "text" : "password"}
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            endAdornment={
+              <button
+                type="button"
+                className={styles.toggleVisibility}
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                tabIndex={-1}
+              >
+                {showPassword ? "🙈" : "👁"}
+              </button>
+            }
+          />
 
-        <Button type="submit" loading={loading} loadingText="Entrando...">
-          Entrar
-        </Button>
-      </form>
+          {error && (
+            <p className={styles.formError} role="alert">
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" loading={loading} loadingText="Entrando..." className={styles.submitButton}>
+            Entrar
+          </Button>
+        </form>
+
+        <p className={styles.switchLine}>
+          Não tem conta? <Link href="/cadastro">Criar conta</Link>
+        </p>
+      </Card>
     </Container>
   );
 }
