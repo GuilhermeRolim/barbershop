@@ -24,7 +24,7 @@ const ROLE_LABEL: Record<UserRow["role"], string> = {
 // Reaproveita as mesmas classes de "tom" do StatusBadge de agendamentos
 // (gold/success/muted) em vez de criar um componente de badge paralelo
 // só pra papel de usuário — a paleta de cores já existe, só o rótulo muda.
-const ROLE_TONE: Record<UserRow["role"], string> = {
+const ROLE_TONE: Record<UserRow["role"], string | undefined> = {
   OWNER: roleBadgeStyles.gold,
   BARBER: roleBadgeStyles.success,
   CLIENT: roleBadgeStyles.muted,
@@ -91,7 +91,7 @@ export default function UsuariosPage() {
                   <td>{u.name}</td>
                   <td>{u.email}</td>
                   <td>
-                    <span className={`${roleBadgeStyles.badge} ${ROLE_TONE[u.role]}`}>
+                    <span className={`${roleBadgeStyles.badge} ${ROLE_TONE[u.role] ?? ""}`}>
                       {ROLE_LABEL[u.role]}
                     </span>
                   </td>
