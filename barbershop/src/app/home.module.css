@@ -39,8 +39,10 @@
 .ctaSecondary {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 13px 28px;
+  min-width: 180px;
   border-radius: var(--radius-sm);
   text-decoration: none;
   font-weight: 600;

@@ -4,23 +4,8 @@ import { prisma } from "@/lib/db";
 import { ROLE_HOME } from "@/modules/auth/role-home";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Container } from "@/components/ui";
+import { SERVICE_ICON, DEFAULT_SERVICE_ICON } from "@/components/service-icon-map";
 import styles from "./home.module.css";
-
-// Ícone ilustrativo por nome de serviço — puramente decorativo, não faz
-// parte do schema. Serviço sem correspondência cai no ícone genérico.
-const SERVICE_ICON: Record<string, string> = {
-  "Corte de Cabelo": "✂️",
-  "Barba": "🪒",
-  "Corte + Barba": "💈",
-  "Sobrancelha": "👁️",
-  "Pézinho / Acabamento": "🧵",
-  "Hidratação Capilar": "💧",
-  "Coloração / Pigmentação": "🎨",
-  "Relaxamento": "🌊",
-  "Desenho na Barba": "✏️",
-  "Platinado": "⚡",
-};
-const DEFAULT_SERVICE_ICON = "💈";
 
 // Texto de especialidade por e-mail do barbeiro — só copy de marketing,
 // não existe campo "especialidade" no schema. Barbeiro sem entrada aqui

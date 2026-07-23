@@ -11,7 +11,7 @@ export function SiteHeader({ isAuthenticated = false, authenticatedHref = "/" }:
   return (
     <header className={styles.header}>
       <Link href="/" className={styles.brand}>
-        Barbearia<span className={styles.brandDot}>.</span>
+        Barbearia Pain<span className={styles.brandDot}>.</span>
       </Link>
 
       <nav className={styles.nav}>

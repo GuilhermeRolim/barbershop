@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { Button, Card, Container, PageHeader, SelectField, StatusBadge, TextField } from "@/components/ui";
+import { SERVICE_ICON, DEFAULT_SERVICE_ICON } from "@/components/service-icon-map";
 import styles from "./agendar.module.css";
 
 interface Barber {
@@ -215,21 +216,31 @@ function BookingFlow({ branchId, onChangeBranch }: { branchId: string; onChangeB
       />
 
       <Card className={styles.bookingCard}>
-        <SelectField
-          label="Serviço"
-          value={selectedServiceId}
-          onChange={(e) => {
-            setSelectedServiceId(e.target.value);
-            setSelectedBarberId("");
-          }}
-        >
-          <option value="">Selecione...</option>
-          {servicesData?.services.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name} — {s.durationMin}min — R$ {s.price}
-            </option>
-          ))}
-        </SelectField>
+        <div>
+          <p className={styles.fieldLabel}>Serviço</p>
+          <div className={styles.serviceGrid}>
+            {servicesData?.services.map((s) => {
+              const isSelected = s.id === selectedServiceId;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`${styles.serviceOption} ${isSelected ? styles.serviceOptionSelected : ""}`}
+                  onClick={() => {
+                    setSelectedServiceId(s.id);
+                    setSelectedBarberId("");
+                  }}
+                  aria-pressed={isSelected}
+                >
+                  <span className={styles.serviceIcon}>{SERVICE_ICON[s.name] ?? DEFAULT_SERVICE_ICON}</span>
+                  <p className={styles.serviceName}>{s.name}</p>
+                  <p className={styles.serviceMeta}>{s.durationMin} min</p>
+                  <p className={styles.servicePrice}>R$ {s.price}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
         {selectedService && (
           <SelectField label="Barbeiro" value={selectedBarberId} onChange={(e) => setSelectedBarberId(e.target.value)}>

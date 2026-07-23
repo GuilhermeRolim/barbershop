@@ -16,6 +16,8 @@
   all: unset;
   cursor: pointer;
   display: block;
+  width: 100%;
+  text-align: center;
 }
 
 .branchCardButton:hover {
@@ -32,13 +34,74 @@
   margin: 0;
   font-size: 18px;
   font-weight: 700;
+  text-align: center;
 }
 
-.slotsLabel {
+.slotsLabel,
+.fieldLabel {
   margin: 0 0 10px;
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.serviceOption {
+  all: unset;
+  cursor: pointer;
+  box-sizing: border-box;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+}
+
+.serviceOption:hover {
+  border-color: var(--gold-600);
+  transform: translateY(-2px);
+}
+
+.serviceOption:focus-visible {
+  outline: 2px solid var(--gold-300, #c6a04a);
+  outline-offset: 2px;
+}
+
+.serviceOptionSelected {
+  border-color: var(--gold-500);
+  background: var(--bg-elevated-2);
+}
+
+.serviceIcon {
+  font-size: 20px;
+}
+
+.serviceName {
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.serviceMeta {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.servicePrice {
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--gold-300);
+  margin: 4px 0 0;
 }
 
 .slotsGrid {

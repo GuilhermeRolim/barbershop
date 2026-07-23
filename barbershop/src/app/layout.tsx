@@ -21,7 +21,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Barbearia — Agendamento Online",
+  title: "Barbearia Pain — Agendamento Online",
   description: "Sistema de agendamento para barbearia",
 };
 
