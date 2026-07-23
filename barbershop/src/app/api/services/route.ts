@@ -1,29 +1,13 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { listServicesWithBarbers } from "@/modules/services-catalog/service";
 
-// Rota pública de leitura (catálogo de serviços ativos com os barbeiros
-// que os executam) — usada pela tela de agendamento do cliente.
-export async function GET() {
-  const services = await prisma.service.findMany({
-    where: { active: true },
-    include: {
-      barberServices: {
-        include: { barber: { select: { id: true, name: true, active: true } } },
-      },
-    },
-    orderBy: { name: "asc" },
-  });
+// GET /api/services?branchId=... — catálogo de serviços ativos com os
+// barbeiros que os executam. branchId filtra só os barbeiros daquela
+// unidade; sem ele, retorna barbeiros de todas as unidades.
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const branchId = searchParams.get("branchId") ?? undefined;
 
-  const formatted = services.map((s) => ({
-    id: s.id,
-    name: s.name,
-    description: s.description,
-    durationMin: s.durationMin,
-    price: s.price,
-    barbers: s.barberServices
-      .filter((bs) => bs.barber.active)
-      .map((bs) => ({ id: bs.barber.id, name: bs.barber.name })),
-  }));
-
-  return NextResponse.json({ services: formatted });
+  const services = await listServicesWithBarbers(branchId);
+  return NextResponse.json({ services });
 }

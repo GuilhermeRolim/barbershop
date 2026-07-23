@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
-import { createAppointmentSchema } from "@/lib/validations/appointment";
 import {
   createAppointment,
+  listAppointmentsForUser,
+} from "@/modules/appointments/service";
+import { createAppointmentSchema } from "@/modules/appointments/validation";
+import {
   AppointmentConflictError,
   OutsideAvailabilityError,
   InvalidServiceError,
   PastDateError,
-} from "@/services/appointment.service";
+} from "@/modules/appointments/errors";
 
 export async function GET(req: NextRequest) {
   const userId = req.headers.get("x-user-id");
@@ -23,34 +24,16 @@ export async function GET(req: NextRequest) {
   const to = searchParams.get("to");
   const statusParam = searchParams.get("status");
 
-  const parsedFrom = from ? new Date(from) : null;
-  const parsedTo = to ? new Date(to) : null;
+  const parsedFrom = from ? new Date(from) : undefined;
+  const parsedTo = to ? new Date(to) : undefined;
   if ((from && Number.isNaN(parsedFrom?.getTime())) || (to && Number.isNaN(parsedTo?.getTime()))) {
     return NextResponse.json({ error: "Parâmetros 'from'/'to' inválidos" }, { status: 400 });
   }
 
-  const dateFilter: Prisma.AppointmentWhereInput =
-    parsedFrom && parsedTo ? { startsAt: { gte: parsedFrom, lte: parsedTo } } : {};
-
-  const statusFilter: Prisma.AppointmentWhereInput = statusParam
-    ? { status: statusParam as Prisma.EnumAppointmentStatusFilter["equals"] }
-    : {};
-
-  // Cada role enxerga um recorte diferente da mesma tabela — essa é a
-  // autorização "row-level": o middleware já garantiu que a role pode
-  // acessar a rota, mas SÓ este filtro garante que ela não veja dados
-  // de outros usuários da mesma role.
-  const roleFilter: Prisma.AppointmentWhereInput =
-    role === "OWNER" ? {} : role === "BARBER" ? { barberId: userId } : { clientId: userId };
-
-  const appointments = await prisma.appointment.findMany({
-    where: { ...roleFilter, ...dateFilter, ...statusFilter },
-    include: {
-      service: { select: { name: true, durationMin: true, price: true } },
-      barber: { select: { id: true, name: true } },
-      client: { select: { id: true, name: true, phone: true } },
-    },
-    orderBy: { startsAt: "asc" },
+  const appointments = await listAppointmentsForUser(userId, role, {
+    from: parsedFrom,
+    to: parsedTo,
+    status: statusParam ?? undefined,
   });
 
   return NextResponse.json({ appointments });

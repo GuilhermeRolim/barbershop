@@ -5,6 +5,35 @@
   margin-bottom: 40px;
 }
 
+.branchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.branchCardButton {
+  all: unset;
+  cursor: pointer;
+  display: block;
+}
+
+.branchCardButton:hover {
+  opacity: 0.85;
+}
+
+.branchCardButton:focus-visible {
+  outline: 2px solid var(--gold-300, #c6a04a);
+  outline-offset: 2px;
+  border-radius: var(--radius-md, 8px);
+}
+
+.branchName {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
 .slotsLabel {
   margin: 0 0 10px;
   font-size: 13px;

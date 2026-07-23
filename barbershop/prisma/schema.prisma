@@ -21,6 +21,23 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // Barbeiros que trabalham nesta unidade
+  barbers      User[]        @relation("BranchBarbers")
+  // Agendamentos feitos nesta unidade (snapshot, não muda se o barbeiro
+  // trocar de unidade depois — mesmo raciocínio de priceAtBooking)
+  appointments Appointment[]
+
+  @@map("branches")
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -32,6 +49,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  // Só é relevante quando role = BARBER; null para CLIENT/OWNER.
+  branchId String?
+  branch   Branch? @relation("BranchBarbers", fields: [branchId], references: [id])
+
   // Relações quando o usuário é BARBER
   barberServices       BarberService[]
   availabilities       Availability[]
@@ -41,6 +62,7 @@ model User {
   appointmentsAsClient Appointment[] @relation("ClientAppointments")
 
   @@index([role])
+  @@index([branchId])
   @@map("users")
 }
 
@@ -90,6 +112,14 @@ model Appointment {
   barber         User              @relation("BarberAppointments", fields: [barberId], references: [id])
   serviceId      String
   service        Service           @relation(fields: [serviceId], references: [id])
+  // Opcional no banco de propósito: agendamentos criados antes desta
+  // feature existir não têm unidade associada. Para agendamentos NOVOS,
+  // o serviço de aplicação (appointment.service.ts) sempre preenche este
+  // campo a partir da unidade do barbeiro — a obrigatoriedade é garantida
+  // em código, não no schema, para não quebrar o deploy sobre dados
+  // já existentes em produção.
+  branchId       String?
+  branch         Branch?           @relation(fields: [branchId], references: [id])
   startsAt       DateTime
   endsAt         DateTime
   status         AppointmentStatus @default(SCHEDULED)
@@ -103,5 +133,6 @@ model Appointment {
   @@index([barberId, startsAt])
   @@index([clientId])
   @@index([status])
+  @@index([branchId])
   @@map("appointments")
 }

@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button, Card, Container, TextField } from "@/components/ui";
-import { ROLE_HOME } from "@/lib/role-home";
+import { ROLE_HOME } from "@/modules/auth/role-home";
 import styles from "./login.module.css";
 
 function LoginForm() {

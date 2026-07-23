@@ -55,7 +55,7 @@ describe("createAppointment — concorrência real (Testcontainers)", () => {
 
   it("apenas UM agendamento simultâneo para o mesmo barbeiro/horário deve ter sucesso", async () => {
     // Importação dinâmica após o DATABASE_URL estar apontando para o container.
-    const { createAppointment } = await import("@/services/appointment.service");
+    const { createAppointment } = await import("@/modules/appointments/service");
 
     const startsAt = "2026-07-16T14:00:00.000Z";
 

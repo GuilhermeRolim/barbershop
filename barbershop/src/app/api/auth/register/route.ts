@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { hashPassword, signToken } from "@/lib/auth";
-import { registerSchema } from "@/lib/validations/auth";
+import { registerUser, EmailAlreadyRegisteredError } from "@/modules/auth/service";
+import { registerSchema } from "@/modules/auth/validation";
 
+// Adaptador HTTP fino: parseia/valida request, chama o módulo, mapeia
+// erros de domínio para status HTTP, seta o cookie de sessão. Toda a
+// regra de negócio (checar duplicidade, hash, emissão do token) vive em
+// modules/auth/service.ts — não aqui.
 export async function POST(req: NextRequest) {
   let body: unknown;
   try {
@@ -19,33 +22,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { name, email, password, phone } = parsed.data;
+  try {
+    const { token, user } = await registerUser(parsed.data);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    return NextResponse.json({ error: "E-mail já cadastrado" }, { status: 409 });
+    const res = NextResponse.json({ user }, { status: 201 });
+    res.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 7 dias
+    });
+    return res;
+  } catch (err) {
+    if (err instanceof EmailAlreadyRegisteredError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    console.error("Erro ao registrar usuário:", err);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
-
-  const passwordHash = await hashPassword(password);
-
-  const user = await prisma.user.create({
-    data: { name, email, passwordHash, phone, role: "CLIENT" },
-  });
-
-  const token = await signToken({ sub: user.id, role: user.role, email: user.email });
-
-  const res = NextResponse.json(
-    { user: { id: user.id, name: user.name, email: user.email, role: user.role } },
-    { status: 201 }
-  );
-
-  res.cookies.set("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 7 dias
-  });
-
-  return res;
 }

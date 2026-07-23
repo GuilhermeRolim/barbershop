@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { verifyPassword, signToken } from "@/lib/auth";
-import { loginSchema } from "@/lib/validations/auth";
+import { authenticateUser, InvalidCredentialsError } from "@/modules/auth/service";
+import { loginSchema } from "@/modules/auth/validation";
 
 // Rate limiting simples em memória — adequado para 1 instância/dev.
 // Em produção com múltiplas instâncias (serverless), trocar por
 // Upstash Redis (@upstash/ratelimit), pois cada instância aqui tem
-// seu próprio Map isolado.
+// seu próprio Map isolado. Fica aqui no adaptador (não no módulo)
+// porque é uma preocupação de infraestrutura HTTP, não de domínio.
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 15 * 60 * 1000;
@@ -35,36 +35,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
   }
 
-  const { email, password } = parsed.data;
-
-  if (isRateLimited(email)) {
+  if (isRateLimited(parsed.data.email)) {
     return NextResponse.json(
       { error: "Muitas tentativas. Tente novamente em 15 minutos." },
       { status: 429 }
     );
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  try {
+    const { token, user } = await authenticateUser(parsed.data);
 
-  // Mensagem genérica de propósito: não revela se o e-mail existe,
-  // evitando enumeração de contas.
-  if (!user || !user.active || !(await verifyPassword(password, user.passwordHash))) {
-    return NextResponse.json({ error: "Credenciais inválidas" }, { status: 401 });
+    const res = NextResponse.json({ user });
+    res.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+    return res;
+  } catch (err) {
+    if (err instanceof InvalidCredentialsError) {
+      return NextResponse.json({ error: err.message }, { status: 401 });
+    }
+    console.error("Erro ao autenticar usuário:", err);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
-
-  const token = await signToken({ sub: user.id, role: user.role, email: user.email });
-
-  const res = NextResponse.json({
-    user: { id: user.id, name: user.name, email: user.email, role: user.role },
-  });
-
-  res.cookies.set("token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7,
-  });
-
-  return res;
 }

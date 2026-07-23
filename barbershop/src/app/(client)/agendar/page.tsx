@@ -24,15 +24,102 @@ interface Appointment {
   service: { name: string; price: string };
   barber: { name: string };
 }
+interface Branch {
+  id: string;
+  name: string;
+  slug: string;
+  address: string | null;
+}
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+// Chave usada no navegador do cliente para lembrar a unidade escolhida
+// entre visitas — é só uma preferência de UX, não um dado sensível, por
+// isso localStorage (sem precisar de cookie/sessão no servidor).
+const BRANCH_STORAGE_KEY = "barbershop:selectedBranchId";
 
 function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
 export default function AgendarPage() {
-  const { data: servicesData } = useSWR<{ services: Service[] }>("/api/services", fetcher);
+  // undefined = ainda não checou o localStorage; null = checou e não
+  // tem unidade salva (mostra a tela de seleção); string = unidade escolhida.
+  const [branchId, setBranchId] = useState<string | null | undefined>(undefined);
+
+  useEffect(() => {
+    setBranchId(localStorage.getItem(BRANCH_STORAGE_KEY));
+  }, []);
+
+  function handleSelectBranch(id: string) {
+    localStorage.setItem(BRANCH_STORAGE_KEY, id);
+    setBranchId(id);
+  }
+
+  function handleChangeBranch() {
+    localStorage.removeItem(BRANCH_STORAGE_KEY);
+    setBranchId(null);
+  }
+
+  if (branchId === undefined) {
+    return (
+      <Container>
+        <PageHeader title="Agendar horário" />
+        <p className={styles.muted}>Carregando...</p>
+      </Container>
+    );
+  }
+
+  if (branchId === null) {
+    return <BranchPicker onSelect={handleSelectBranch} />;
+  }
+
+  return <BookingFlow branchId={branchId} onChangeBranch={handleChangeBranch} />;
+}
+
+/**
+ * Tela exibida antes de qualquer coisa quando o cliente ainda não
+ * escolheu uma unidade — a barbearia tem duas filiais (São Miguel e
+ * Vila Matilde) e cada uma tem seu próprio time de barbeiros.
+ */
+function BranchPicker({ onSelect }: { onSelect: (id: string) => void }) {
+  const { data, isLoading } = useSWR<{ branches: Branch[] }>("/api/branches", fetcher);
+
+  return (
+    <Container width="sm">
+      <PageHeader
+        title="Escolha a unidade"
+        subtitle="Selecione onde você quer agendar seu horário."
+      />
+
+      {isLoading && <p className={styles.muted}>Carregando unidades...</p>}
+
+      {!isLoading && data?.branches.length === 0 && (
+        <p className={styles.muted}>Nenhuma unidade disponível no momento.</p>
+      )}
+
+      <div className={styles.branchGrid}>
+        {data?.branches.map((b) => (
+          <button key={b.id} className={styles.branchCardButton} onClick={() => onSelect(b.id)}>
+            <Card>
+              <p className={styles.branchName}>{b.name}</p>
+              {b.address && <p className={styles.muted}>{b.address}</p>}
+            </Card>
+          </button>
+        ))}
+      </div>
+    </Container>
+  );
+}
+
+function BookingFlow({ branchId, onChangeBranch }: { branchId: string; onChangeBranch: () => void }) {
+  const { data: branchesData } = useSWR<{ branches: Branch[] }>("/api/branches", fetcher);
+  const currentBranch = branchesData?.branches.find((b) => b.id === branchId);
+
+  const { data: servicesData } = useSWR<{ services: Service[] }>(
+    `/api/services?branchId=${branchId}`,
+    fetcher
+  );
   const { data: appointmentsData, mutate: refetchAppointments } = useSWR<{ appointments: Appointment[] }>(
     "/api/appointments",
     fetcher,
@@ -113,7 +200,19 @@ export default function AgendarPage() {
 
   return (
     <Container>
-      <PageHeader title="Agendar horário" subtitle="Escolha o serviço, o profissional e o melhor horário para você." />
+      <PageHeader
+        title="Agendar horário"
+        subtitle={
+          currentBranch
+            ? `Unidade ${currentBranch.name} — escolha o serviço, o profissional e o melhor horário.`
+            : "Escolha o serviço, o profissional e o melhor horário para você."
+        }
+        action={
+          <Button variant="ghost" size="sm" onClick={onChangeBranch}>
+            Trocar unidade
+          </Button>
+        }
+      />
 
       <Card className={styles.bookingCard}>
         <SelectField

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/db";
-import { ROLE_HOME } from "@/lib/role-home";
+import { ROLE_HOME } from "@/modules/auth/role-home";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Container } from "@/components/ui";
 import styles from "./home.module.css";

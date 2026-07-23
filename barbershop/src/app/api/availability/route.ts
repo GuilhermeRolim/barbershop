@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma } from "@/lib/db";
-import { getAvailableSlots, InvalidServiceError } from "@/services/appointment.service";
+import { getAvailableSlots } from "@/modules/appointments/service";
+import { InvalidServiceError, BarberNotFoundError } from "@/modules/appointments/errors";
 
 const querySchema = z.object({
   barberId: z.string().cuid(),
@@ -11,8 +11,6 @@ const querySchema = z.object({
 
 // GET /api/availability?barberId=...&serviceId=...&date=2026-07-15
 // Retorna a lista de horários (ISO 8601) que o cliente pode escolher.
-// Rota pública em termos de dado (qualquer role autenticada acessa),
-// já protegida pelo middleware apenas quanto à autenticação.
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const parsed = querySchema.safeParse({
@@ -28,18 +26,14 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  const barber = await prisma.user.findFirst({
-    where: { id: parsed.data.barberId, role: "BARBER", active: true },
-  });
-  if (!barber) {
-    return NextResponse.json({ error: "Barbeiro não encontrado" }, { status: 404 });
-  }
-
   try {
     const date = new Date(`${parsed.data.date}T00:00:00.000Z`);
     const slots = await getAvailableSlots(parsed.data.barberId, parsed.data.serviceId, date);
     return NextResponse.json({ slots });
   } catch (err) {
+    if (err instanceof BarberNotFoundError) {
+      return NextResponse.json({ error: err.message }, { status: 404 });
+    }
     if (err instanceof InvalidServiceError) {
       return NextResponse.json({ error: err.message }, { status: 422 });
     }

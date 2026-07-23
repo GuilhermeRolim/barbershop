@@ -5,6 +5,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 vi.mock("@/lib/db", () => ({
   prisma: {
     service: { findUnique: vi.fn() },
+    // Usado pelo service para descobrir a unidade (branch) do barbeiro
+    // ao criar o agendamento — precisa estar mockado mesmo quando o
+    // teste não se importa com unidades, senão a chamada quebra.
+    user: { findUnique: vi.fn() },
     availability: { findFirst: vi.fn() },
     appointment: { findFirst: vi.fn(), findMany: vi.fn(), create: vi.fn() },
     $transaction: vi.fn(),
@@ -12,13 +16,13 @@ vi.mock("@/lib/db", () => ({
 }));
 
 import { prisma } from "@/lib/db";
+import { createAppointment } from "@/modules/appointments/service";
 import {
-  createAppointment,
   AppointmentConflictError,
   OutsideAvailabilityError,
   InvalidServiceError,
   PastDateError,
-} from "@/services/appointment.service";
+} from "@/modules/appointments/errors";
 
 const FIXED_NOW = new Date("2026-07-15T12:00:00.000Z"); // uma quarta-feira
 
@@ -35,6 +39,9 @@ describe("createAppointment", () => {
     vi.clearAllMocks();
     vi.useFakeTimers();
     vi.setSystemTime(FIXED_NOW);
+    // Padrão: barbeiro sem unidade vinculada, a menos que um teste
+    // específico sobrescreva isso.
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ branchId: null } as never);
   });
 
   it("lança InvalidServiceError quando o serviço não existe", async () => {
@@ -74,7 +81,7 @@ describe("createAppointment", () => {
     ).rejects.toThrow(OutsideAvailabilityError);
   });
 
-  it("lança OutsideAvailabilityError quando o horário é fora da janela de trabalho", async () => {
+  it("lança OutsideAvailabilityError quando o horário é fora da janela de trabalho (horário local de Brasília)", async () => {
     vi.mocked(prisma.service.findUnique).mockResolvedValue(mockService as never);
     vi.mocked(prisma.availability.findFirst).mockResolvedValue({
       id: "avail-1",
@@ -84,12 +91,15 @@ describe("createAppointment", () => {
       endTime: "18:00",
     } as never);
 
-    // 20:00 está fora da janela 09:00-18:00
+    // 23:00 UTC = 20:00 em Brasília (UTC-3) — fora da janela 09:00-18:00
+    // local. Importante usar um horário que reflita corretamente a
+    // conversão de fuso, já que o service compara contra horário LOCAL
+    // da barbearia, não UTC bruto.
     await expect(
       createAppointment("client-1", {
         barberId: "barber-1",
         serviceId: "svc-1",
-        startsAt: "2026-07-16T20:00:00.000Z",
+        startsAt: "2026-07-16T23:00:00.000Z",
       })
     ).rejects.toThrow(OutsideAvailabilityError);
   });
@@ -114,6 +124,7 @@ describe("createAppointment", () => {
       return (fn as (tx: unknown) => Promise<unknown>)(tx);
     });
 
+    // 14:00 UTC = 11:00 em Brasília — dentro da janela 09:00-18:00 local.
     await expect(
       createAppointment("client-1", {
         barberId: "barber-1",
@@ -151,6 +162,7 @@ describe("createAppointment", () => {
       return (fn as (tx: unknown) => Promise<unknown>)(tx);
     });
 
+    // 14:00 UTC = 11:00 em Brasília — dentro da janela 09:00-18:00 local.
     const result = await createAppointment("client-1", {
       barberId: "barber-1",
       serviceId: "svc-1",

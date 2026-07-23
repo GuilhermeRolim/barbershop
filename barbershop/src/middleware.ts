@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/jwt";
+import { verifyToken } from "@/modules/auth/jwt";
 
 // Mapa de prefixo de rota -> roles permitidas.
 // Rotas /api/* não listadas aqui passam sem checagem de role no middleware

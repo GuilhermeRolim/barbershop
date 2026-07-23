@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { verifyToken, type JwtPayload } from "./jwt";
+import { verifyToken, type JwtPayload } from "@/modules/auth/jwt";
 
 /**
  * Lê e valida o JWT do cookie em Server Components / Server Actions.
