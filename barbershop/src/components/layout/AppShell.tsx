@@ -53,7 +53,10 @@ export function AppShell({ role, email, children }: AppShellProps) {
     <div className={styles.shell}>
       <header className={styles.header}>
         <Link href="/" className={styles.brand}>
-          Barbearia<span className={styles.brandDot}>.</span>
+          <span className={styles.brandLine1}>Barbearia</span>
+          <span className={styles.brandLine2}>
+            Pain<span className={styles.brandDot}>.</span>
+          </span>
         </Link>
 
         <nav className={styles.nav}>

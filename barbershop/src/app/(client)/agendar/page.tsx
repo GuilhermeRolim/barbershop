@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import { Button, Card, Container, PageHeader, SelectField, StatusBadge, TextField } from "@/components/ui";
+import { Button, Card, Container, PageHeader, StatusBadge, TextField } from "@/components/ui";
 import { SERVICE_ICON, DEFAULT_SERVICE_ICON } from "@/components/service-icon-map";
+import { getBarberAvatarUrl } from "@/components/barber-avatar";
 import styles from "./agendar.module.css";
 
 interface Barber {
@@ -243,14 +244,33 @@ function BookingFlow({ branchId, onChangeBranch }: { branchId: string; onChangeB
         </div>
 
         {selectedService && (
-          <SelectField label="Barbeiro" value={selectedBarberId} onChange={(e) => setSelectedBarberId(e.target.value)}>
-            <option value="">Selecione...</option>
-            {selectedService.barbers.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name}
-              </option>
-            ))}
-          </SelectField>
+          <div>
+            <p className={styles.fieldLabel}>Barbeiro</p>
+            <div className={styles.barberGrid}>
+              {selectedService.barbers.map((b) => {
+                const isSelected = b.id === selectedBarberId;
+                return (
+                  <button
+                    key={b.id}
+                    type="button"
+                    className={`${styles.barberOption} ${isSelected ? styles.barberOptionSelected : ""}`}
+                    onClick={() => setSelectedBarberId(b.id)}
+                    aria-pressed={isSelected}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element -- foto placeholder externa, não otimizável pelo next/image sem configurar domínio remoto */}
+                    <img
+                      src={getBarberAvatarUrl(b.id)}
+                      alt={b.name}
+                      className={styles.barberPhoto}
+                      width={72}
+                      height={72}
+                    />
+                    <p className={styles.barberName}>{b.name}</p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {selectedBarberId && (

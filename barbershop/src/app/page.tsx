@@ -219,7 +219,10 @@ export default async function HomePage() {
         <Container width="lg" className={styles.footerInner}>
           <div className={styles.footerBrand}>
             <p className={styles.footerBrandName}>
-              Barbearia<span className={styles.brandDot}>.</span>
+              <span className={styles.footerBrandLine1}>Barbearia</span>
+              <span className={styles.footerBrandLine2}>
+                Pain<span className={styles.brandDot}>.</span>
+              </span>
             </p>
             <p className={styles.footerTagline}>
               Tradição e navalha desde sempre. Cortes clássicos, barba na régua e atendimento sem fila.
